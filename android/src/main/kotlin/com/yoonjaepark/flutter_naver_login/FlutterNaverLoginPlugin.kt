@@ -3,11 +3,9 @@ package com.yoonjaepark.flutter_naver_login
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.os.Build
-import android.os.Bundle
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,12 +14,10 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.embedding.android.FlutterFragmentActivity
-import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import org.json.JSONException
 import org.json.JSONObject
@@ -30,7 +26,6 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.ExecutionException
-import android.util.Log
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.NidOAuthLogin
 import com.navercorp.nid.oauth.OAuthLoginCallback
@@ -42,6 +37,7 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
   private val METHOD_INIT_SDK = "initSdk"
   private val METHOD_LOG_IN = "logIn"
+  private val METHOD_REAGREE = "reAgree"
   private val METHOD_LOG_OUT = "logOut"
   private val METHOD_LOG_OUT_DELETE_TOKEN = "logoutAndDeleteToken"
   private val METHOD_GET_ACCOUNT = "getCurrentAcount"
@@ -194,6 +190,7 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         this.initSdk(result, clientId, clientName, clientSecret)
       }
       METHOD_LOG_IN -> this.login(result)
+      METHOD_REAGREE -> this.reAgree(result)
       METHOD_LOG_OUT -> this.logout(result)
       METHOD_LOG_OUT_DELETE_TOKEN -> this.logoutAndDeleteToken(result)
       METHOD_GET_TOKEN -> {
@@ -305,6 +302,30 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       }
     }
     NaverIdLoginSDK.authenticate(this.activity!!, mOAuthLoginHandler);
+  }
+
+  private fun reAgree(result: Result) {
+    pendingResult = result
+
+    val mOAuthLoginHandler = object : OAuthLoginCallback {
+      override fun onSuccess() {
+        currentAccount(result)
+      }
+      override fun onFailure(httpStatus: Int, message: String) {
+        val errorCode = NaverIdLoginSDK.getLastErrorCode().code
+        val errorDesc = NaverIdLoginSDK.getLastErrorDescription()
+        result.success(object : HashMap<String, String>() {
+          init {
+            put("status", "error")
+            put("errorMessage", "errorCode:$errorCode, errorDesc:$errorDesc")
+          }
+        })
+      }
+      override fun onError(errorCode: Int, message: String) {
+        onFailure(errorCode, message)
+      }
+    }
+    NaverIdLoginSDK.reagreeAuthenticate(this.activity!!, mOAuthLoginHandler);
   }
 
   fun logout(result: Result) {
