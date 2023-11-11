@@ -112,7 +112,7 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
           } catch (e: Exception) {
             try {
               deleteCurrentEncryptedPreferences(flutterPluginBinding.applicationContext)
-              NaverIdLoginSDK.initialize(flutterPluginBinding.applicationContext, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_CLIENT_NAME);  
+              NaverIdLoginSDK.initialize(flutterPluginBinding.applicationContext, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_CLIENT_NAME);
             } catch (e: Exception) {
               e.printStackTrace()
             }
@@ -344,7 +344,7 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       }
     }
 
-    NidOAuthLogin().callDeleteTokenApi(this.activity!!, mOAuthLoginHandler)
+    NidOAuthLogin().callDeleteTokenApi(mOAuthLoginHandler)
   }
 
   fun refreshAccessTokenWithRefreshToken(result: Result) {
@@ -367,7 +367,7 @@ class FlutterNaverLoginPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
       }
     }
 
-    NidOAuthLogin().callRefreshAccessTokenApi(this.activity!!, mOAuthLoginHnadler)
+    NidOAuthLogin().callRefreshAccessTokenApi(mOAuthLoginHnadler)
   }
 
   internal inner class ProfileTask : AsyncTask<String, Void, String>() {
